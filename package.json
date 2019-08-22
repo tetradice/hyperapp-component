@@ -1,0 +1,29 @@
+{
+  "name": "hyperapp-v2-modularize",
+  "version": "0.2.0",
+  "description": "Module and component system for hyperapp V2",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "unpkg": "src/index.js",
+  "browser": "src/index.js",
+  "typings": "index.d.ts",
+  "files": [
+    "src",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "hyperapp"
+  ],
+  "repository": "https://github.com/tetradice/hyperapp-v2-modularize",
+  "author": "Dice <tetradice@gmail.com>",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@hyperapp/middlewares": "sergey-shpak/hyperapp-middlewares",
+    "hyperapp": "https://github.com/tetradice/hyperapp#typescript-declarations-improvement",
+    "hyperapp-v2-basiclogger": "^0.2.0",
+    "parcel": "^1.12.3",
+    "typescript": "^3.5.3"
+  }
+}
