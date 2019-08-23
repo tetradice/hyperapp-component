@@ -1,6 +1,6 @@
 {
   "name": "hyperapp-v2-component",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Module and component system for hyperapp V2",
   "main": "src/index.js",
   "module": "src/index.js",
