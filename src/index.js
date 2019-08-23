@@ -89,15 +89,17 @@ export function component(params) {
 
     // Generate component function
     var newComponent = function (props, children) {
+        var id = (props.id === undefined ? '' : props.id);
+
         var partialState = undefined;
         if (props.state["__components__"] && props.state["__components__"][name]) {
-            partialState = props.state["__components__"][name][props.id];
+            partialState = props.state["__components__"][name][id];
         }
         if (partialState === undefined && params.init){
             partialState = params.init();
         }
 
-        var context = { "__componentContext__": true, name: name, id: props.id };
+        var context = { "__componentContext__": true, name: name, id: id };
         return params.view(context, partialState, props, children);
     };
 

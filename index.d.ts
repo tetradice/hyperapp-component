@@ -3,7 +3,7 @@ import { Middleware, VNode, Action, Dispatchable } from "hyperapp";
 declare const componentHandler: Middleware;
 
 interface RequiredProps {
-    id: ComponentId;
+    id?: ComponentId;
     state: object;
 }
 
