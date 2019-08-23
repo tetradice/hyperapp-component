@@ -1,4 +1,4 @@
-import { Middleware, VNode, Action, Dispatchable } from "hyperapp";
+import { Middleware, VNode, Action, Dispatchable, Children } from "hyperapp";
 
 declare const componentHandler: Middleware;
 
@@ -14,9 +14,9 @@ type ComponentContext = { name: string, id: ComponentId };
 interface ComponentParam<Props, PState> {
     name?: string;
     init?: () => PState;
-    view: (c: ComponentContext, partialState: PState, props: Props & RequiredProps, children: VNode<any>) => VNode<any>;
+    view: (c: ComponentContext, partialState: PState, props: Props & RequiredProps, children: Children[]) => VNode<object> | null;
 }
 
-export function component<Props, PState>(params: ComponentParam<Props, PState>): (props: Props & RequiredProps, children: VNode<any>) => VNode<any>;
+export function component<Props, PState>(params: ComponentParam<Props, PState>): (props: Props & RequiredProps, children: Children[]) => VNode<object> | null;
 
 
