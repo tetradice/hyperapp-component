@@ -6,8 +6,6 @@ export function componentHandler(baseDispatch) {
     var currentState = undefined;
 
     var newDispatch = function (target, props) {
-        console.log("newDispatch target:", target);
-
         if (Array.isArray(target)) {
             if (typeof target[0] === 'object' && target[0]['__componentContext__']) {
                 var context = target[0];
