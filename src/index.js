@@ -1,37 +1,37 @@
 "use strict";
 
-var moduleParams = {};
+var componentParams = {};
 
-export function modularize(baseDispatch) {
+export function componentHandler(baseDispatch) {
     var currentState = undefined;
 
     var newDispatch = function (target, props) {
         console.log("newDispatch target:", target);
 
         if (Array.isArray(target)) {
-            if (typeof target[0] === 'object' && target[0]['__modularizeContext__']) {
+            if (typeof target[0] === 'object' && target[0]['__componentContext__']) {
                 var context = target[0];
 
                 var adjustedState = Object.assign({}, currentState);
                 if (adjustedState === undefined) {
                     adjustedState = {};
                 }
-                if (adjustedState["__modularize__"] === undefined) {
-                    adjustedState["__modularize__"] = {};
+                if (adjustedState["__components__"] === undefined) {
+                    adjustedState["__components__"] = {};
                 }
-                if (adjustedState["__modularize__"][context.name] === undefined) {
-                    adjustedState["__modularize__"][context.name] = {};
+                if (adjustedState["__components__"][context.name] === undefined) {
+                    adjustedState["__components__"][context.name] = {};
                 }
-                if (adjustedState["__modularize__"][context.name][context.id] === undefined) {
-                    var params = moduleParams[context.name];
-                    adjustedState["__modularize__"][context.name][context.id] = (params.init ? params.init() : undefined);
+                if (adjustedState["__components__"][context.name][context.id] === undefined) {
+                    var params = componentParams[context.name];
+                    adjustedState["__components__"][context.name][context.id] = (params.init ? params.init() : undefined);
                 }
 
                 if(typeof target[1] === 'function'){
                     // action
                     var action = target[1];
                     var payload = target[2];
-                    var pState = adjustedState["__modularize__"][context.name][context.id];
+                    var pState = adjustedState["__components__"][context.name][context.id];
 
                     var actionResult;
                     if(typeof payload === 'function'){
@@ -54,7 +54,7 @@ export function modularize(baseDispatch) {
                     // new state
                     var newPState = target[1];
 
-                    adjustedState["__modularize__"][context.name][context.id] = newPState;
+                    adjustedState["__components__"][context.name][context.id] = newPState;
                     currentState = adjustedState;
                     return baseDispatch(adjustedState, props); // TODO: Effect
                 }
@@ -75,20 +75,34 @@ export function modularize(baseDispatch) {
     return newDispatch;
 }
 
-export function createModule(name, params) {
-    var mod = function (props, children) {
-        var mState = undefined;
-        if (props.state["__modularize__"] && props.state["__modularize__"][name]) {
-            mState = props.state["__modularize__"][name][props.id];
+export function component(params) {
+    // Decide name
+    var baseName = (params.name || 'Unnamed');
+    var name = baseName;
+    for(var i = 2; true; i++){
+        if(componentParams[name] === undefined){
+            break;
+        } else {
+            name = baseName + "_" + i.toString();
         }
-        if (mState === undefined && params.init){
-            mState = params.init();
+    }
+
+    // Generate component function
+    var newComponent = function (props, children) {
+        var partialState = undefined;
+        if (props.state["__components__"] && props.state["__components__"][name]) {
+            partialState = props.state["__components__"][name][props.id];
+        }
+        if (partialState === undefined && params.init){
+            partialState = params.init();
         }
 
-        var context = { "__modularizeContext__": true, name: name, id: props.id };
-        return params.view(context, props, mState);
+        var context = { "__componentContext__": true, name: name, id: props.id };
+        return params.view(context, partialState, props, children);
     };
-    moduleParams[name] = params;
 
-    return mod;
+    // Store params
+    componentParams[name] = params;
+
+    return newComponent;
 }

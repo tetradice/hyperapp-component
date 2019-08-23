@@ -1,21 +1,22 @@
 import { Middleware, VNode, Action, Dispatchable } from "hyperapp";
 
-declare const modularize: Middleware;
+declare const componentHandler: Middleware;
 
 interface RequiredProps {
-    id: ModuleId;
+    id: ComponentId;
     state: object;
 }
 
-type ModuleId = string | number;
+type ComponentId = string | number;
 
-type ModuleContext = { '__modularizeContext__': true, name: string, id: ModuleId };
+type ComponentContext = { name: string, id: ComponentId };
 
-interface ModuleParam<Props, PState> {
-    init: () => PState;
-    view: (m: ModuleContext, props: Props & RequiredProps, state: PState) => VNode<any>;
+interface ComponentParam<Props, PState> {
+    name?: string;
+    init?: () => PState;
+    view: (c: ComponentContext, partialState: PState, props: Props & RequiredProps, children: VNode<any>) => VNode<any>;
 }
 
-export function createModule<Props, PState>(name: string, params: ModuleParam<Props, PState>): (props: Props & RequiredProps, children: VNode<any>) => VNode<any>;
+export function component<Props, PState>(params: ComponentParam<Props, PState>): (props: Props & RequiredProps, children: VNode<any>) => VNode<any>;
 
 

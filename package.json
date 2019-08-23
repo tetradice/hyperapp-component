@@ -1,6 +1,6 @@
 {
-  "name": "hyperapp-v2-modularize",
-  "version": "0.2.0",
+  "name": "hyperapp-v2-component",
+  "version": "0.1.0",
   "description": "Module and component system for hyperapp V2",
   "main": "src/index.js",
   "module": "src/index.js",
@@ -16,7 +16,7 @@
   "keywords": [
     "hyperapp"
   ],
-  "repository": "https://github.com/tetradice/hyperapp-v2-modularize",
+  "repository": "https://github.com/tetradice/hyperapp-v2-component",
   "author": "Dice <tetradice@gmail.com>",
   "license": "UNLICENSED",
   "devDependencies": {

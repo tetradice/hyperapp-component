@@ -1,7 +1,7 @@
 import { Action, h, Effect, EffectFunc, app, View } from "hyperapp";
 import { compose } from "@hyperapp/middlewares";
 import logger from "hyperapp-v2-basiclogger";
-import { modularize, createModule } from ".";
+import { componentHandler, component } from ".";
 
 interface State { count: number }
 
@@ -14,10 +14,10 @@ const Increment: Action<State, { value: number }> = (state, payload) => ({
 
 const UpdateValue: Action<{ value: string }, string> = (state, payload) => ({ ...state, value: payload });
 
-const TextBox = createModule<{}, {value: string}>('TextBox', {
+const TextBox = component<{}, {value: string}>({
       init: () => ({ value: "def" })
-    , view: (m, props, mState) => {
-        return <input type="text" value={mState.value} onchange={[m, UpdateValue, (e: Event) => (e.target as any).value]} />
+    , view: (c, mState, props) => {
+        return <input type="text" value={mState.value} onchange={[c, UpdateValue, (e: Event) => (e.target as any).value]} />
     }
 });
 
@@ -37,5 +37,5 @@ app({
       init: {count: 0}
     , view: view
     , node: document.getElementById('app')!
-    , middleware: compose(modularize, logger)
+    , middleware: compose(componentHandler, logger)
 });
