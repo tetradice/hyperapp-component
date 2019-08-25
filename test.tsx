@@ -25,10 +25,10 @@ const TextBox = component<{}, {value: string}>({
 const view: View<State> = (state) => {
     return (
         <div>
-            <TextBox id={1} state={state} />
-            <TextBox id={2} state={state} />
-            <TextBox id={3} state={state} />
-            <TextBox id={4} state={state} />
+            <TextBox key={1} state={state} />
+            <TextBox key={2} state={state} />
+            <TextBox key={3} state={state} />
+            <TextBox key={4} state={state} />
         </div>
     );
 }
