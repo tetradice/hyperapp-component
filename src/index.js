@@ -2,6 +2,12 @@
 
 var componentParams = {};
 
+function encode(str){
+    return str.replace(/\/|%2F/g, function(m){
+        return (m === '/' ? '%2F' : '%%2F')
+    });
+}
+
 function makePathString(path) {
     return path.join("/");
 }
@@ -76,7 +82,7 @@ export function componentHandler(baseDispatch) {
     return newDispatch;
 }
 
-var pathList = [];
+var encodedPathList = [];
 
 export function component(params) {
     // Decide name
@@ -93,16 +99,16 @@ export function component(params) {
     // Generate component function
     var newComponent = function (props, children) {
         var key = (props.key === undefined ? '' : props.key);
-        pathList.push(name, key);
+        encodedPathList.push(encode(name), encode(key));
 
-        var path = makePathString(pathList);
+        var path = makePathString(encodedPathList);
         var partialState = getPartialState(params.init, props.state, path);
 
         var context = { "__componentContext__": true, name: name, key: key, path: path };
         var result = params.view(context, partialState, props, children);
 
-        pathList.pop();
-        pathList.pop();
+        encodedPathList.pop();
+        encodedPathList.pop();
 
         return result;
     };
