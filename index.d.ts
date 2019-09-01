@@ -1,4 +1,4 @@
-import { Middleware, VNode, Action, Dispatchable, Children } from "hyperapp";
+import { Middleware, VNode, Action, Dispatchable, Children, Effect } from "hyperapp";
 
 declare const componentHandler: Middleware;
 
@@ -15,4 +15,11 @@ interface ComponentParam<Props, PState, MainState> {
     view: (c: ComponentContext, partialState: PState, props: Props & RequiredProps<MainState>, children: Children[]) => VNode | null;
 }
 
-export function component<Props, PState, MainState>(params: ComponentParam<Props, PState, MainState>): (props: Props & RequiredProps<MainState>, children: Children[]) => VNode | null;
+interface Component<Props, MainState> {
+    (props: Props & RequiredProps<MainState>, children: Children[]): VNode | null;
+    componentName: string;
+}
+
+export function component<Props, PState, MainState>(params: ComponentParam<Props, PState, MainState>): Component<Props, MainState>;
+
+export function destroyComponent(component: Component<any, any>, key?: string | number): Effect<any>;

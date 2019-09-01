@@ -46,6 +46,27 @@ function objectAssign(target, varArgs) { // .length of function is 2
     return to;
 }
 
+var NothingAction = function(state){
+    return state;
+}
+
+var ComponentDestroyRunner = function(dispatch, path) {
+    var currentState = dispatch(NothingAction);
+    console.log("destroy: ", path); // ★
+    if (currentState["__components__"] && currentState["__components__"][path]){
+        var newState = objectAssign({}, currentState);
+        newState["__components__"] = objectAssign({}, newState["__components__"]);
+        delete newState["__components__"][path];
+        dispatch(newState);
+
+        console.log('success');
+    }
+}
+
+export function destroyComponent(component, key){
+    return [ComponentDestroyRunner, makePathString([component.componentName, key])];
+}
+
 export function componentHandler(baseDispatch) {
     var currentState = undefined;
 
@@ -137,6 +158,9 @@ export function component(params) {
 
         return result;
     };
+
+    // set name
+    newComponent.componentName = name;
 
     // Store params
     componentParams[name] = params;
