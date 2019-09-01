@@ -122,6 +122,8 @@ export function component(params) {
     // Generate component function
     var newComponent = function (props, children) {
         var key = (props.key === undefined ? '' : props.key);
+        if (typeof key === 'number') key = key.toString();
+        if (key === undefined) key = "";
         encodedPathList.push(encode(name), encode(key));
 
         var path = makePathString(encodedPathList);
