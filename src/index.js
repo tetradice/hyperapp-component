@@ -60,6 +60,7 @@ export function componentHandler(baseDispatch) {
     var newDispatch = function (target, props) {
         if (Array.isArray(target)) {
             if (typeof target[0] === 'object' && target[0]['__componentContext__']) {
+                // with component context
                 var context = target[0];
                 var params = componentParams[context.name];
 
@@ -87,7 +88,7 @@ export function componentHandler(baseDispatch) {
                         return newDispatch([context, actionResult], props);
                     }
                 } else {
-                    // new state (with efffects)
+                    // new state (with effects)
                     var newPartialState = undefined;
                     var effects = undefined;
                     if (target.length >= 3) {
@@ -113,14 +114,20 @@ export function componentHandler(baseDispatch) {
                         return baseDispatch(newState, props);
                     }
                 }
+            } else if (typeof target === 'object') {
+                // new state with effects
+                currentState = target;
+                return baseDispatch(target, props);
             } else {
-                currentState = target[0];
+                // action with custom payload
                 return baseDispatch(target, props);
             }
         } else if (typeof target === 'object') {
+            // new state without effects
             currentState = target;
             return baseDispatch(target, props);
         } else {
+            // action
             return baseDispatch(target, props);
         }
     }
