@@ -18,8 +18,7 @@ interface ComponentParam<Props, PState, MainState> {
 interface Component<Props, MainState> {
     (props: Props & RequiredProps<MainState>, children: Children[]): VNode | null;
     componentName: string;
+    destroyComponent: (key?: string | number) => Effect<MainState>;
 }
 
 export function component<Props, PState, MainState>(params: ComponentParam<Props, PState, MainState>): Component<Props, MainState>;
-
-export function destroyComponent(component: Component<any, any>, key?: string | number): Effect<any>;

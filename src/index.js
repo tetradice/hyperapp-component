@@ -1,4 +1,3 @@
-//@ts-check
 "use strict";
 
 var componentParams = {};
@@ -53,10 +52,6 @@ var ComponentDestroyAction = function(state, props){
 
 var ComponentDestroyRunner = function(dispatch, props) {
     dispatch(ComponentDestroyAction, props);
-}
-
-export function destroyComponent(component, key){
-    return [ComponentDestroyRunner, {componentName: component.componentName, key: key}];
 }
 
 export function componentHandler(baseDispatch) {
@@ -157,8 +152,10 @@ export function component(params) {
         return result;
     };
 
-    // set name
-    newComponent.componentName = name;
+    // set destroy effect
+    newComponent.destroyComponent = function(key){
+        return [ComponentDestroyRunner, { componentName: name, key: key }];
+    }
 
     // Store params
     componentParams[name] = params;
