@@ -1,20 +1,11 @@
+//@ts-check
 "use strict";
 
 var componentParams = {};
 
-function encode(str){
-    return str.replace(/\/|%2F/g, function(m){
-        return (m === '/' ? '%2F' : '%%2F')
-    });
-}
-
-function makePathString(path) {
-    return path.join("/");
-}
-
-function getPartialState(init, state, path) {
-    if (state["__components__"] && state["__components__"][path]) {
-        return state["__components__"][path];
+function getPartialState(init, state, componentName, key) {
+    if (state["__components__"] && state["__components__"][componentName] && state["__components__"][componentName][key]) {
+        return state["__components__"][componentName][key];
     }
     if (init) {
         return init();
@@ -46,25 +37,26 @@ function objectAssign(target, varArgs) { // .length of function is 2
     return to;
 }
 
-var NothingAction = function(state){
-    return state;
+var ComponentDestroyAction = function(state, props){
+    var newState = state;
+    var partialState = getPartialState(undefined, state, props.componentName, props.key);
+
+    if (partialState) {
+        newState = objectAssign({}, state);
+        newState["__components__"] = objectAssign({}, newState["__components__"]);
+        newState["__components__"][props.componentName] = objectAssign({}, newState["__components__"][props.componentName]);
+        delete newState["__components__"][props.componentName][props.key];
+    }
+
+    return newState;
 }
 
-var ComponentDestroyRunner = function(dispatch, path) {
-    var currentState = dispatch(NothingAction);
-    console.log("destroy: ", path); // ★
-    if (currentState["__components__"] && currentState["__components__"][path]){
-        var newState = objectAssign({}, currentState);
-        newState["__components__"] = objectAssign({}, newState["__components__"]);
-        delete newState["__components__"][path];
-        dispatch(newState);
-
-        console.log('success');
-    }
+var ComponentDestroyRunner = function(dispatch, props) {
+    dispatch(ComponentDestroyAction, props);
 }
 
 export function destroyComponent(component, key){
-    return [ComponentDestroyRunner, makePathString([component.componentName, key])];
+    return [ComponentDestroyRunner, {componentName: component.componentName, key: key}];
 }
 
 export function componentHandler(baseDispatch) {
@@ -80,7 +72,7 @@ export function componentHandler(baseDispatch) {
                     // action
                     var action = target[1];
                     var payload = target[2];
-                    var partialState = getPartialState(params.init, currentState, context.path);
+                    var partialState = getPartialState(params.init, currentState, context.name, context.key);
 
                     var actionResult;
                     if (typeof payload === 'function') {
@@ -100,16 +92,31 @@ export function componentHandler(baseDispatch) {
                         return newDispatch([context, actionResult], props);
                     }
                 } else {
-                    // new state
-                    var newPartialState = target[1];
+                    // new state (with efffects)
+                    var newPartialState = undefined;
+                    var effects = undefined;
+                    if (target.length >= 3) {
+                        newPartialState = target[1];
+                        effects = target.slice(2);
+                    } else {
+                        newPartialState = target[1];
+                    }
 
                     var newState = objectAssign({}, currentState);
                     if (newState["__components__"] === undefined) {
                         newState["__components__"] = {};
                     }
-                    newState["__components__"][context.path] = newPartialState;
+                    if (newState["__components__"][context.name] === undefined) {
+                        newState["__components__"][context.name] = {};
+                    }
+                    newState["__components__"][context.name][context.key] = newPartialState;
                     currentState = newState;
-                    return baseDispatch(newState, props); // TODO: Effect
+
+                    if (effects) {
+                        return baseDispatch([newState].concat(effects), props);
+                    } else {
+                        return baseDispatch(newState, props);
+                    }
                 }
             } else {
                 currentState = target[0];
@@ -126,8 +133,6 @@ export function componentHandler(baseDispatch) {
     return newDispatch;
 }
 
-var encodedPathList = [];
-
 export function component(params) {
     // Decide name
     var baseName = (params.name || 'Unnamed');
@@ -143,18 +148,11 @@ export function component(params) {
     // Generate component function
     var newComponent = function (props, children) {
         var key = (props.key === undefined ? '' : props.key);
-        if (typeof key === 'number') key = key.toString();
-        if (key === undefined) key = "";
-        encodedPathList.push(encode(name), encode(key));
 
-        var path = makePathString(encodedPathList);
-        var partialState = getPartialState(params.init, props.state, path);
+        var partialState = getPartialState(params.init, props.state, name, key);
 
-        var context = { "__componentContext__": true, name: name, key: key, path: path };
+        var context = { "__componentContext__": true, name: name, key: key };
         var result = params.view(context, partialState, props, children);
-
-        encodedPathList.pop();
-        encodedPathList.pop();
 
         return result;
     };
