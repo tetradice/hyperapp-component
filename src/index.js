@@ -38,15 +38,20 @@ function objectAssign(target, varArgs) { // .length of function is 2
 
 var ComponentDestroyAction = function(state, props){
     var newState = state;
-    var partialState = getPartialState(undefined, state, props.componentName, props.key);
-
-    if (partialState) {
-        newState = objectAssign({}, state);
-        newState["__components__"] = objectAssign({}, newState["__components__"]);
-        newState["__components__"][props.componentName] = objectAssign({}, newState["__components__"][props.componentName]);
-        delete newState["__components__"][props.componentName][props.key];
+    
+    if(props.all){
+        if(state["__components__"] !== undefined){
+            delete newState["__components__"][props.componentName];
+        }
+    } else {
+        if (state["__components__"] !== undefined
+            && state["__components__"][componentName] !== undefined) {
+            newState = objectAssign({}, state);
+            newState["__components__"] = objectAssign({}, newState["__components__"]);
+            newState["__components__"][props.componentName] = objectAssign({}, newState["__components__"][props.componentName]);
+            delete newState["__components__"][props.componentName][props.key];
+        }
     }
-
     return newState;
 }
 
@@ -160,8 +165,12 @@ export function component(params) {
     };
 
     // set destroy effect
-    newComponent.destroyComponent = function(key){
+    newComponent.destroyState = function(key){
         return [ComponentDestroyRunner, { componentName: name, key: key }];
+    }
+
+    newComponent.destroyAllStatus = function (key) {
+        return [ComponentDestroyRunner, { componentName: name, all: true }];
     }
 
     // Store params
