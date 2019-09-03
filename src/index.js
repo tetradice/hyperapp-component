@@ -13,6 +13,19 @@ function getPartialState(init, state, componentName, key) {
     }
 }
 
+function mergePartialState(context, state, partialState){
+    var newState = objectAssign({}, state);
+    if (newState["__components__"] === undefined) {
+        newState["__components__"] = {};
+    }
+    if (newState["__components__"][context.name] === undefined) {
+        newState["__components__"][context.name] = {};
+    }
+    newState["__components__"][context.name][context.key] = partialState;
+
+    return newState;
+}
+
 // from MDN <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign>
 function objectAssign(target, varArgs) { // .length of function is 2
     if (target == null) { // TypeError if undefined or null
@@ -45,7 +58,7 @@ var ComponentDestroyAction = function(state, props){
         }
     } else {
         if (state["__components__"] !== undefined
-            && state["__components__"][componentName] !== undefined) {
+            && state["__components__"][props.componentName] !== undefined) {
             newState = objectAssign({}, state);
             newState["__components__"] = objectAssign({}, newState["__components__"]);
             newState["__components__"][props.componentName] = objectAssign({}, newState["__components__"][props.componentName]);
@@ -59,80 +72,58 @@ var ComponentDestroyRunner = function(dispatch, props) {
     dispatch(ComponentDestroyAction, props);
 }
 
+function GetStateAction(state){
+    return state;
+}
+
+function dispatchComponentAction(dispatch, context, payload, props){
+    var params = componentParams[context.name];
+    var action = context.action;
+    var state = dispatch(GetStateAction);
+    var partialState = getPartialState(params.init, state, context.name, context.key);
+
+    var actionResult;
+    if (typeof payload === 'function') {
+        // payload creator
+        actionResult = action(partialState, payload(props));
+    } else if (payload !== undefined) {
+        // custom payload
+        actionResult = action(partialState, payload);
+    } else {
+        // default payload
+        actionResult = action(partialState, props);
+    }
+
+    // Does result includes state?
+    if (Array.isArray(actionResult) && typeof actionResult[0] === 'object' && !actionResult[0]['__componentContext__']) {
+        // new state with effects
+        var newPartialState = actionResult[0];
+        var newState = mergePartialState(context, state, newPartialState);
+
+        return dispatch([newState].concat(actionResult.slice(1)));
+
+    } else if (!Array.isArray(actionResult) && typeof actionResult === 'object' && !actionResult['__componentContext__']) {
+        // new state without effects
+        var newPartialState = actionResult;
+        var newState = mergePartialState(context, state, newPartialState);
+
+        return dispatch(newState);
+
+    } else {
+        // no state
+        return dispatch(actionResult);
+    }
+}
+
 export function componentHandler(baseDispatch) {
-    var currentState = undefined;
-
     var newDispatch = function (target, props) {
-        if (Array.isArray(target)) {
-            if (typeof target[0] === 'object' && target[0]['__componentContext__']) {
-                // with component context
-                var context = target[0];
-                var params = componentParams[context.name];
-
-                if (typeof target[1] === 'function') {
-                    // action
-                    var action = target[1];
-                    var payload = target[2];
-                    var partialState = getPartialState(params.init, currentState, context.name, context.key);
-
-                    var actionResult;
-                    if (typeof payload === 'function') {
-                        // payload creator
-                        actionResult = action(partialState, payload(props));
-                    } else if (payload !== undefined) {
-                        // custom payload
-                        actionResult = action(partialState, payload);
-                    } else {
-                        // default payload
-                        actionResult = action(partialState, props);
-                    }
-
-                    if (Array.isArray(actionResult)) {
-                        return newDispatch([context].concat(actionResult), props);
-                    } else {
-                        return newDispatch([context, actionResult], props);
-                    }
-                } else {
-                    // new state (with effects)
-                    var newPartialState = undefined;
-                    var effects = undefined;
-                    if (target.length >= 3) {
-                        newPartialState = target[1];
-                        effects = target.slice(2);
-                    } else {
-                        newPartialState = target[1];
-                    }
-
-                    var newState = objectAssign({}, currentState);
-                    if (newState["__components__"] === undefined) {
-                        newState["__components__"] = {};
-                    }
-                    if (newState["__components__"][context.name] === undefined) {
-                        newState["__components__"][context.name] = {};
-                    }
-                    newState["__components__"][context.name][context.key] = newPartialState;
-                    currentState = newState;
-
-                    if (effects) {
-                        return baseDispatch([newState].concat(effects), props);
-                    } else {
-                        return baseDispatch(newState, props);
-                    }
-                }
-            } else if (typeof target === 'object') {
-                // new state with effects
-                currentState = target;
-                return baseDispatch(target, props);
-            } else {
-                // action with custom payload
-                return baseDispatch(target, props);
-            }
-        } else if (typeof target === 'object') {
-            // new state without effects
-            currentState = target;
-            return baseDispatch(target, props);
+        if (Array.isArray(target) && typeof target[0] === 'object' && target[0]['__componentContext__']) {
+            // component action (with payload)
+            return dispatchComponentAction(newDispatch, target[0], target[1], props);
+        } else if (!Array.isArray(target) && typeof target === 'object' && target['__componentContext__']){
+            // component action
+            return dispatchComponentAction(newDispatch, target, undefined, props);
         } else {
-            // action
             return baseDispatch(target, props);
         }
     }
@@ -158,8 +149,10 @@ export function component(params) {
 
         var partialState = getPartialState(params.init, props.state, name, key);
 
-        var context = { "__componentContext__": true, name: name, key: key };
-        var result = params.view(context, partialState, props, children);
+        var c = function(baseAction){
+            return { "__componentContext__": true, action: baseAction, name: name, key: key }
+        };
+        var result = params.view(c, partialState, props, children);
 
         return result;
     };

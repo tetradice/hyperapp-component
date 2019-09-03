@@ -7,7 +7,9 @@ interface RequiredProps<MainState> {
     state: MainState;
 }
 
-type ComponentContext = { name: string, key: string | number };
+interface ComponentContext {
+    <S, P>(action: Action<S, P>): Action<S, P>;
+}
 
 interface ComponentParam<Props, PState, MainState> {
     name?: string;
