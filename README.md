@@ -10,11 +10,10 @@ It is composed a hyperapp middleware and function for creating component.
 - Stateful component support
 - API as small and easy to learn as possible
 - "True one state" does not break - the state of each component is combined in the app state.
-- Nestable (component in component)
+- Can also be used module-like
 
 # Prerequisites
 
-- Hyperapp V2
 - App state is object (not number, string, boolean, etc.)
 
 # Install
@@ -129,22 +128,36 @@ export var MyTextBox = component({
       name: "MyTextBox"
     , init: () => ({ value: "" })
     , view: (c, cState, props, children) => {
-        return <input type="text" value={mState.value} onchange={[c, UpdateValue, (e) => e.target.value]} />
+        return <input type="text" value={mState.value} onchange={[c(UpdateValue), (e) => e.target.value]} />
     }
 });
 ```
+
+`c(Action)` is __component action__. It updates only component state.
 
 When updating the component state, one of the following is specified for `on*` handler attribute.
 
 
 ```js
-[c, Action] // without custom payload
-[c, Action, payload] // with custom payload (or payload creator)
+c(Action) // without custom payload
+[c(Action), payload] // with custom payload (or payload creator)
 ```
 
 ## Nested components
 
 If you want to nest components, pass props.state to the subcomponent. (__Not cState__)
+
+
+# Module-like
+
+By using without setting the key, you can use it in module-like. (Module here means that there is always only one in the application and multiple instances cannot be created.)
+
+```
+<Module1 state={state} />
+```
+
+In this case, since no key is set, one component state is shared by all the places where Module1 is called.
+
 
 ## Where is the component state stored?
 
