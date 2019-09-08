@@ -1,6 +1,6 @@
 {
   "name": "hyperapp-v2-component",
-  "version": "0.1.2",
+  "version": "0.3.0",
   "description": "Module and component system for hyperapp V2",
   "main": "src/index.js",
   "module": "src/index.js",
@@ -22,7 +22,7 @@
   "devDependencies": {
     "@hyperapp/middlewares": "sergey-shpak/hyperapp-middlewares",
     "hyperapp": "https://github.com/tetradice/hyperapp#typescript-declarations-improvement",
-    "hyperapp-v2-basiclogger": "^0.2.0",
+    "hyperapp-v2-basiclogger": "^0.3.0",
     "parcel": "^1.12.3",
     "typescript": "^3.5.3"
   }
