@@ -28,8 +28,8 @@ interface ComponentParam<Props, PState, MainState> {
     init?: () => PState;
     view: (c: ComponentContext, partialState: PState, props: Props & RequiredProps<MainState>, children: Children[]) => VNode | null;
 
+    mountProperty?: string;
     // unique?: boolean;
-    // mountAt?: string;
 }
 
 export function component<Props, ComponentState, MainState>(params: ComponentParam<Props, ComponentState, MainState>): Component<Props, ComponentState, MainState>;
