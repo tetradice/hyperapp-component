@@ -28,7 +28,7 @@ interface ComponentParam<Props, PState, MainState> {
     init?: () => PState;
     view: (c: ComponentContext, partialState: PState, props: Props & RequiredProps<MainState>, children: Children[]) => VNode | null;
 
-    mountProperty?: string;
+    mountToAppState?: boolean;
     // unique?: boolean;
 }
 
