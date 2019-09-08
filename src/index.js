@@ -2,9 +2,9 @@
 
 var componentParams = {};
 
-function getPartialState(init, state, componentName, key) {
-    if (state["__components__"] && state["__components__"][componentName] && state["__components__"][componentName][key]) {
-        return state["__components__"][componentName][key];
+function getPartialState(init, state, componentName, id) {
+    if (state["__components__"] && state["__components__"][componentName] && state["__components__"][componentName][id]) {
+        return state["__components__"][componentName][id];
     }
     if (init) {
         return init();
@@ -21,7 +21,7 @@ function mergePartialState(context, state, partialState){
     if (newState["__components__"][context.name] === undefined) {
         newState["__components__"][context.name] = {};
     }
-    newState["__components__"][context.name][context.key] = partialState;
+    newState["__components__"][context.name][context.id] = partialState;
 
     return newState;
 }
@@ -62,7 +62,7 @@ var ComponentDestroyAction = function(state, props){
             newState = objectAssign({}, state);
             newState["__components__"] = objectAssign({}, newState["__components__"]);
             newState["__components__"][props.componentName] = objectAssign({}, newState["__components__"][props.componentName]);
-            delete newState["__components__"][props.componentName][props.key];
+            delete newState["__components__"][props.componentName][props.id];
         }
     }
     return newState;
@@ -80,7 +80,7 @@ function dispatchComponentAction(dispatch, context, payload, props){
     var params = componentParams[context.name];
     var action = context.action;
     var state = dispatch(GetStateAction);
-    var partialState = getPartialState(params.init, state, context.name, context.key);
+    var partialState = getPartialState(params.init, state, context.name, context.id);
 
     var actionResult;
     if (typeof payload === 'function') {
@@ -145,12 +145,12 @@ export function component(params) {
 
     // Generate component function
     var newComponent = function (props, children) {
-        var key = (props.key === undefined ? '' : props.key);
+        var id = (props.id === undefined ? '' : props.id);
 
-        var partialState = getPartialState(params.init, props.state, name, key);
+        var partialState = getPartialState(params.init, props.state, name, id);
 
         var c = function(baseAction){
-            return { "__componentContext__": true, action: baseAction, name: name, key: key }
+            return { "__componentContext__": true, action: baseAction, name: name, id: id }
         };
         var result = params.view(c, partialState, props, children);
 
@@ -158,11 +158,11 @@ export function component(params) {
     };
 
     // set destroy effect
-    newComponent.destroyState = function(key){
-        return [ComponentDestroyRunner, { componentName: name, key: key }];
+    newComponent.destroyState = function(id){
+        return [ComponentDestroyRunner, { componentName: name, id: id }];
     }
 
-    newComponent.destroyAllStatus = function (key) {
+    newComponent.destroyAllStatus = function (id) {
         return [ComponentDestroyRunner, { componentName: name, all: true }];
     }
 
