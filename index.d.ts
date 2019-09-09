@@ -17,10 +17,10 @@ interface Component<Props, ComponentState, MainState> {
     (props: Props & RequiredProps<MainState>, children: Children[]): VNode | null;
     componentName: string;
 
-    // context(id?: IdValue): ComponentContext;
+    context(id?: IdValue): ComponentContext;
+    destroyState(state: MainState, id?: IdValue): MainState;
+    destroyAllStates(state: MainState): MainState;
     // slice(state: MainState, id?: IdValue): ComponentState | undefined;
-    destroyState(id?: IdValue): Effect<MainState>;
-    destroyAllStatus(): Effect<MainState>;
 }
 
 interface ComponentParam<Props, PState, MainState> {

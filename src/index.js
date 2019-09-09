@@ -67,21 +67,27 @@ function objectAssign(target, varArgs) { // .length of function is 2
     return to;
 }
 
-var ComponentDestroyAction = function(state, props){
+var destroy = function(state, props){
     var newState = state;
     
     if(props.all){
-        if(!props.mountPropertyName){
-            if(state["__components__"] !== undefined){
+        if(props.mountPropertyName){
+            newState = objectAssign({}, state);
+            delete newState[props.mountPropertyName];
+        } else {
+            if (state["__components__"] !== undefined) {
                 newState = objectAssign({}, state);
                 delete newState["__components__"][props.componentName];
             }
-        } else {
-            newState = objectAssign({}, state);
-            delete newState[props.mountPropertyName];
         }
     } else {
-        if (!props.mountPropertyName) {
+        if (props.mountPropertyName) {
+            if (state[props.mountPropertyName] !== undefined) {
+                newState = objectAssign({}, state);
+                newState[props.mountPropertyName] = objectAssign({}, newState[props.mountPropertyName]);
+                delete newState[props.mountPropertyName][props.id];
+            }
+        } else {
             if (state["__components__"] !== undefined
                 && state["__components__"][props.componentName] !== undefined) {
                 newState = objectAssign({}, state);
@@ -89,20 +95,10 @@ var ComponentDestroyAction = function(state, props){
                 newState["__components__"][props.componentName] = objectAssign({}, newState["__components__"][props.componentName]);
                 delete newState["__components__"][props.componentName][props.id];
             }
-        } else {
-            if (state[props.mountPropertyName] !== undefined) {
-                newState = objectAssign({}, state);
-                newState[props.mountPropertyName] = objectAssign({}, newState[props.mountPropertyName]);
-                delete newState[props.mountPropertyName][props.id];
-            }
         }
     }
 
     return newState;
-}
-
-var ComponentDestroyRunner = function(dispatch, props) {
-    dispatch(ComponentDestroyAction, props);
 }
 
 function GetStateAction(state){
@@ -166,38 +162,48 @@ export function componentHandler(baseDispatch) {
 
 export function component(params) {
     // Decide name
-    var baseName = (params.name || 'Unnamed');
-    var name = baseName;
-    for (var i = 2; true; i++) {
-        if (componentParams[name] === undefined) {
-            break;
-        } else {
-            name = baseName + "_" + i.toString();
+    var name;
+    if(params.mountToAppState){
+        name = params.name;
+    } else {
+        var baseName = (params.name || 'Unnamed');
+        name = baseName;
+        for (var i = 2; true; i++) {
+            if (componentParams[name] === undefined) {
+                break;
+            } else {
+                name = baseName + "_" + i.toString();
+            }
         }
     }
+    var mountPropertyName = (params.mountToAppState ? name : null);
 
     // Generate component function
     var newComponent = function (props, children) {
         var id = (props.id === undefined ? '' : props.id);
-        var mountPropertyName = (params.mountToAppState ? name : null);
 
         var partialState = getPartialState(params.init, mountPropertyName, props.state, name, id);
 
-        var c = function(baseAction){
-            return { "__componentContext__": true, action: baseAction, name: name, id: id, mountPropertyName: mountPropertyName }
-        };
+        var c = newComponent.context(id);
         var result = params.view(c, partialState, props, children);
 
         return result;
     };
 
-    // set destroy effect
-    newComponent.destroyState = function(id){
-        return [ComponentDestroyRunner, { componentName: name, id: id, mountPropertyName: params.mountPropertyName }];
+    // set context function
+    newComponent.context = function(id){
+        return function(baseAction) {
+            return { "__componentContext__": true, action: baseAction, name: name, id: id, mountPropertyName: mountPropertyName }
+        };
     }
 
-    newComponent.destroyAllStatus = function (id) {
-        return [ComponentDestroyRunner, { componentName: name, mountPropertyName: params.mountPropertyName, all: true }];
+    // set destroy function
+    newComponent.destroyState = function(state, id){
+        return destroy(state, { componentName: name, id: id, mountPropertyName: mountPropertyName });
+    }
+
+    newComponent.destroyAllStates = function(state) {
+        return destroy(state, { componentName: name, mountPropertyName: mountPropertyName, all: true });
     }
 
     // Store params
