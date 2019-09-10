@@ -4,8 +4,8 @@ declare const componentHandler: Middleware;
 
 type IdValue = string | number | undefined;
 
-interface RequiredProps<MainState> {
-    id: IdValue;
+interface SpecialProps<MainState> {
+    id?: IdValue;
     state: MainState;
 }
 
@@ -14,22 +14,31 @@ interface ComponentContext {
 }
 
 interface Component<Props, ComponentState, MainState> {
-    (props: Props & RequiredProps<MainState>, children: Children[]): VNode | null;
-    componentName: string;
+    (props: Props & SpecialProps<MainState>, children: Children[]): VNode | null;
 
+    slice(state: MainState, id?: IdValue): ComponentState | undefined;
+
+    context<P>(id: IdValue, action: Action<ComponentState, P>): typeof action;
     context(id?: IdValue): ComponentContext;
-    destroyState(state: MainState, id?: IdValue): MainState;
-    destroyAllStates(state: MainState): MainState;
-    // slice(state: MainState, id?: IdValue): ComponentState | undefined;
+
+    destroy(state: MainState, ids: IdValue[]): MainState;
+    destroy(state: MainState, idPattern: RegExp): MainState;
+    destroy(state: MainState, id?: IdValue): MainState;
+    destroyAll(state: MainState): MainState;
+
+    destroyEffect(ids: IdValue[]): Effect<MainState>;
+    destroyEffect(idPattern: RegExp): Effect<MainState>;
+    destroyEffect(id?: IdValue): Effect<MainState>;
+    destroyAllEffect(): Effect<MainState>;
 }
 
 interface ComponentParam<Props, PState, MainState> {
     name?: string;
     init?: () => PState;
-    view: (c: ComponentContext, partialState: PState, props: Props & RequiredProps<MainState>, children: Children[]) => VNode | null;
+    view: (c: ComponentContext, partialState: PState, props: Props & SpecialProps<MainState>, children: Children[]) => VNode | null;
 
     mountToAppState?: boolean;
-    // unique?: boolean;
+    singleton?: boolean;
 }
 
 export function component<Props, ComponentState, MainState>(params: ComponentParam<Props, ComponentState, MainState>): Component<Props, ComponentState, MainState>;
