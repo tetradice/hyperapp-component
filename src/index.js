@@ -139,7 +139,6 @@ function GetStateAction(state){
 }
 
 function dispatchComponentAction(dispatch, context, payload, props){
-    var params = context.componentParams;
     var action = context.action;
     var state = dispatch(GetStateAction);
     var partialState = getPartialState(context.componentName, context.componentParams, state, context.id);
@@ -213,8 +212,15 @@ export function component(params) {
         definedUnmountedComponentNames[name] = true;
     }
 
+    var singletonCheck = function (id) {
+        if (params.singleton && id !== undefined) {
+            throw new Error(params.name + " is a singleton component -- id cannot be passed");
+        }
+    }
+
     // Generate component function
     var newComponent = function (props, children) {
+        singletonCheck();
         if(props.id === undefined) props.id = '';
 
         var partialState = getPartialState(name, params, props.state, props.id);
@@ -227,18 +233,23 @@ export function component(params) {
 
     // set slice function
     newComponent.slice = function(appState, id){
+        singletonCheck(id);
         return getPartialState(name, params, appState, id);
     }
 
     // set context function
-    newComponent.context = function(id){
+    newComponent.context = function(){
         if (arguments.length >= 2){
             var id = arguments[0];
+            singletonCheck(id);
             var action = arguments[1];
+
             return { "__componentContext__": true, action: action, id: id, componentName: name, componentParams: params };
         } else {
             // partial application
             var id = arguments[0];
+            singletonCheck(id);
+
             return function(baseAction) {
                 return newComponent.context(id, baseAction);
             };
@@ -247,6 +258,7 @@ export function component(params) {
 
     // set destroy function
     newComponent.destroy = function(state, target){
+        singletonCheck(target);
         return DestroyComponentStateAction(state, { componentName: name, target: target, componentParams: params });
     }
 
@@ -256,6 +268,7 @@ export function component(params) {
 
     // set destroy effect function
     newComponent.destroyEffect = function (target) {
+        singletonCheck(target);
         return [DestroyComponentStateRunner, { componentName: name, target: target, componentParams: params }];
     }
 
