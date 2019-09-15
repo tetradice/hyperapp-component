@@ -1,6 +1,6 @@
-# hyperapp-v2-component
+# hyperapp-component
 
-`hyperapp-v2-component` is plugin to enhance stateful component for [Hyperapp V2](https://github.com/jorgebucaran/hyperapp).
+`hyperapp-component` is plugin to enhance stateful component for [Hyperapp V2](https://github.com/jorgebucaran/hyperapp).
 
 It is composed a hyperapp middleware and function for creating component.
 
@@ -20,10 +20,10 @@ It is composed a hyperapp middleware and function for creating component.
 
 ```sh
 # for npm
-% npm install --save-dev hyperapp-v2-component
+% npm install --save-dev hyperapp-component
 
 # for Yarn
-% yarn add -D hyperapp-v2-component
+% yarn add -D hyperapp-component
 ```
 
 # Usage
@@ -31,7 +31,7 @@ It is composed a hyperapp middleware and function for creating component.
 1. Add `componentHandler` to `middleware` argument of `app()`.
 
     ```jsx
-    import { componentHandler } from "hyperapp-v2-component";
+    import { componentHandler } from "hyperapp-component";
 
     app({
         ...
@@ -49,7 +49,7 @@ It is composed a hyperapp middleware and function for creating component.
 2. Define your component by `component()` function. (the example below uses ES6 and JSX)
 
     ```jsx
-    import { component } from "hyperapp-v2-component";
+    import { component } from "hyperapp-component";
 
     const UpdateComponentValue = (cState, value) => {
         return { ...cState, value: value };
@@ -125,7 +125,7 @@ It is composed a hyperapp middleware and function for creating component.
 
 ## Component state
 
-`hyperapp-v2-component` manages the state of each component by integrating it into the app state. They are encapsulated and should normally not be accessed outside of component actions.
+`hyperapp-component` manages the state of each component by integrating it into the app state. They are encapsulated and should normally not be accessed outside of component actions.
 
 However, by using `mountProperty` option, you can assign component states to specific properties of app state and access them from the outside. (Described later)
 
@@ -136,7 +136,7 @@ However, by using `mountProperty` option, you can assign component states to spe
 If you want to dispatch an action and update a component state, you should wrap the action with `c` function.
 
 ```jsx
-import { component } from "hyperapp-v2-component";
+import { component } from "hyperapp-component";
 
 const UpdateComponentValue = (cState, value) => {
     return { ...cState, value: value };
@@ -167,7 +167,7 @@ c(Action) // without custom payload
 If you want to nest components, pass `props.state` to the subcomponent. (__Not `cState`__)
 
 ```jsx
-import { component } from "hyperapp-v2-component";
+import { component } from "hyperapp-component";
 
 var MySubTextBox = component({
       view: (c, cState) => {
@@ -202,7 +202,7 @@ Unlike React, A does not automatically destroy component states that are no long
     - `MyComponent.destroyAllEffect()` (destroy all id states)
 
 ```jsx
-import { component } from "hyperapp-v2-component";
+import { component } from "hyperapp-component";
 import { MyTextBox } from "./MyTextBox";
 
 const BreakTextBox = (state, value) => {
@@ -271,7 +271,7 @@ To update component state, use `MyComponent.context` to dispatch component actio
 As mentioned above, by using `mountToAppState` option, you can assign component states to specific properties of app state and access them from the outside.
 
 ```jsx
-import { component } from "hyperapp-v2-component";
+import { component } from "hyperapp-component";
 
 const UpdateComponentValue = (cState, value) => {
     return { ...cState, value: value };
@@ -373,7 +373,7 @@ This will change the behavior as follows:
 
 
 ## Contact
-@tetradice ([GitHub Issues](https://github.com/tetradice/hyperapp-v2-component/issues) or [Twitter](https://twitter.com/tetradice))
+@tetradice ([GitHub Issues](https://github.com/tetradice/hyperapp-component/issues) or [Twitter](https://twitter.com/tetradice))
 
 
 ## License
