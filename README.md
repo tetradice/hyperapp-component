@@ -40,10 +40,18 @@ It is composed a hyperapp middleware and function for creating component.
     })
     ```
 
-    - If you multiple middleware, you may use `compose()` function of [hyperapp-enhancer]().
+    - If you multiple middleware, use `compose()` at [@hyperapp/middlewares (by sergey-shpak)](https://github.com/sergey-shpak/hyperapp-middlewares).
     
-        ```jsxtsx
-            middleware: compose(componentHandler, logger)
+        ```jsx
+        import { h, app } from "hyperapp";
+        import { componentHandler } from "hyperapp-component";
+        import logger from "hyperapp-v2-basiclogger";
+        import { compose } from "@hyperapp/middlewares";
+
+        app({
+            ...
+            middleware: compose(logger, componentHandler)
+        });
         ```
 
 2. Define your component by `component()` function. (the example below uses ES6 and JSX)
