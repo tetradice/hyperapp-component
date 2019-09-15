@@ -7,17 +7,23 @@ interface SpecialProps<MainState> {
     state: MainState;
 }
 
-interface ComponentContext {
-    <S, P>(action: hyperappSubset.Action<S, P>): hyperappSubset.Action<S, P>;
+interface ComponentContext<ComponentState, MainState> {
+    <P>(action: hyperappSubset.Action<ComponentState, P>): hyperappSubset.Action<MainState, P>;
 }
 
 interface Component<Props, ComponentState, MainState> {
-    (props: Props & SpecialProps<MainState>, children: hyperappSubset.Children[]): hyperappSubset.VNode | null;
+    (
+        props: Props & SpecialProps<MainState>,
+        children: hyperappSubset.Children[]
+    ): hyperappSubset.VNode | null;
 
     slice(state: MainState, id?: IdValue): ComponentState | undefined;
 
-    context<P>(id: IdValue, action: hyperappSubset.Action<ComponentState, P>): typeof action;
-    context(id?: IdValue): ComponentContext;
+    context<P>(
+        id: IdValue,
+        action: hyperappSubset.Action<ComponentState, P>
+    ): hyperappSubset.Action<MainState, P>;
+    context(id?: IdValue): ComponentContext<ComponentState, MainState>;
 
     destroy(state: MainState, ids: IdValue[]): MainState;
     destroy(state: MainState, idPattern: RegExp): MainState;
@@ -31,12 +37,18 @@ interface Component<Props, ComponentState, MainState> {
 }
 
 interface SingletonComponent<Props, ComponentState, MainState> {
-    (props: Props & Omit<SpecialProps<MainState>, 'id'>, children: hyperappSubset.Children[]): hyperappSubset.VNode | null;
+    (
+        props: Props & Omit<SpecialProps<MainState>, "id">,
+        children: hyperappSubset.Children[]
+    ): hyperappSubset.VNode | null;
 
     slice(state: MainState): ComponentState | undefined;
 
-    context<P>(id: undefined, action: hyperappSubset.Action<ComponentState, P>): typeof action;
-    context(): ComponentContext;
+    context<P>(
+        id: undefined,
+        action: hyperappSubset.Action<ComponentState, P>
+    ): typeof action;
+    context(): ComponentContext<ComponentState, MainState>;
 
     destroy(state: MainState): MainState;
     destroyAll(state: MainState): MainState;
@@ -45,17 +57,32 @@ interface SingletonComponent<Props, ComponentState, MainState> {
     destroyAllEffect(): hyperappSubset.Effect<MainState>;
 }
 
-interface ComponentParam<Props, PState, MainState> {
+interface ComponentParam<Props, ComponentState, MainState> {
     name?: string;
-    init?: () => PState;
-    view: (c: ComponentContext, partialState: PState, props: Props & SpecialProps<MainState>, children: hyperappSubset.Children[]) => hyperappSubset.VNode | null;
+    init?: () => ComponentState;
+    view: (
+        c: ComponentContext<ComponentState, MainState>,
+        cState: ComponentState,
+        props: Props & SpecialProps<MainState>,
+        children: hyperappSubset.Children[]
+    ) => hyperappSubset.VNode | null;
 
     mountToAppState?: boolean;
     singleton?: boolean;
 }
 
-export function component<Props, ComponentState, MainState>(params: ComponentParam<Props, ComponentState, MainState> & {singleton: true}): SingletonComponent<Props, ComponentState, MainState>;
-export function component<Props, ComponentState, MainState>(params: ComponentParam<Props, ComponentState, MainState>): Component<Props, ComponentState, MainState>;
+export function component<Props, ComponentState, MainState>(
+    params: ComponentParam<Props, ComponentState, MainState> & { singleton: true }
+): SingletonComponent<Props, ComponentState, MainState>;
+export function component<Props, ComponentState, MainState>(
+    params: ComponentParam<Props, ComponentState, MainState>
+): Component<Props, ComponentState, MainState>;
+
+export type ComponentActionResult<ComponentState, MainState = any> =
+    | ComponentState
+    | [ComponentState, ...hyperappSubset.Effect<MainState>[]]
+    | hyperappSubset.Dispatchable<MainState>;
+
 
 declare namespace hyperappSubset {
     export interface VNode {
@@ -67,7 +94,7 @@ declare namespace hyperappSubset {
         key: unknown; // protected (internal implementation)
         lazy: unknown; // protected (internal implementation)
     }
-    
+
     export type Children = VNode | string | number | null
 
     type PayloadCreator<DPayload, CPayload> = ((data: DPayload) => CPayload);
@@ -75,7 +102,7 @@ declare namespace hyperappSubset {
     export type Dispatchable<State, DPayload = void, CPayload = any> = (
         ([Action<State, CPayload>, PayloadCreator<DPayload, CPayload>])
         | ([Action<State, CPayload>, CPayload])
-        | Action<State, void>      // (state) => ({ ... }) | (state) => ([{ ... }, effect1, ...])
+        | Action<State, void> // (state) => ({ ... }) | (state) => ([{ ... }, effect1, ...])
         | Action<State, DPayload>  // (state, data) => ({ ... })  | (state, data) => ([{ ... }, effect1, ...])
     );
 
