@@ -184,6 +184,9 @@ export function componentHandler(baseDispatch) {
         } else if (!Array.isArray(target) && typeof target === 'object' && target['__componentContext__']){
             // component action
             return dispatchComponentAction(newDispatch, target, undefined, props);
+        } else if (typeof target !== 'function' && typeof target !== 'object') {
+            console.error("dispatched new app state: ", target);
+            throw new Error("App state passed a non-object value -- when using hyperapp-component, app state must be object (includes when initialized)");
         } else {
             return baseDispatch(target, props);
         }
@@ -212,13 +215,19 @@ export function component(params) {
         definedUnmountedComponentNames[name] = true;
     }
 
-    var singletonCheck = function (id) {
-        if (params.singleton && id !== undefined) {
-            throw new Error(params.name + " is a singleton component -- id cannot be passed");
-        }
+    // Parameter check
+    if (params.init !== undefined && typeof params.init !== "function") {
+        console.error("Given `init` parameter of %s: %o", name, params.init);
+        throw new Error("`init` parameter of component must be undefined or a function to generate new initial value");
     }
 
     // Generate component function
+    var singletonCheck = function (id) {
+        if (params.singleton && id !== undefined) {
+            throw new Error(name + " is a singleton component -- id cannot be passed");
+        }
+    }
+
     var newComponent = function (props, children) {
         singletonCheck();
         if(props.id === undefined) props.id = '';
