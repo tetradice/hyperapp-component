@@ -12,24 +12,15 @@ interface ComponentAction<ComponentState, Payload = void, MainState = unknown> {
 }
 
 interface ComponentContext<ComponentState, MainState> {
-    <P>(action: ComponentAction<ComponentState, P, MainState>): hyperappSubset.Action<
-        MainState,
-        P
-    >;
+    <P>(action: ComponentAction<ComponentState, P, MainState>): hyperappSubset.Action<MainState, P>;
 }
 
 interface Component<Props, ComponentState, MainState> {
-    (
-        props: Props & SpecialProps<MainState>,
-        children: hyperappSubset.Children[]
-    ): hyperappSubset.VNode | null;
+    (props: Props & SpecialProps<MainState>, children: hyperappSubset.Children[]): hyperappSubset.VNode | null;
 
     slice(state: MainState, id?: IdValue): ComponentState | undefined;
 
-    context<P>(
-        id: IdValue,
-        action: hyperappSubset.Action<ComponentState, P>
-    ): hyperappSubset.Action<MainState, P>;
+    context<P>(id: IdValue, action: hyperappSubset.Action<ComponentState, P>): hyperappSubset.Action<MainState, P>;
     context(id?: IdValue): ComponentContext<ComponentState, MainState>;
 
     destroy(state: MainState, ids: IdValue[]): MainState;
@@ -44,17 +35,11 @@ interface Component<Props, ComponentState, MainState> {
 }
 
 interface SingletonComponent<Props, ComponentState, MainState> {
-    (
-        props: Props & Omit<SpecialProps<MainState>, "id">,
-        children: hyperappSubset.Children[]
-    ): hyperappSubset.VNode | null;
+    (props: Props & Omit<SpecialProps<MainState>, "id">, children: hyperappSubset.Children[]): hyperappSubset.VNode | null;
 
     slice(state: MainState): ComponentState | undefined;
 
-    context<P>(
-        id: undefined,
-        action: hyperappSubset.Action<ComponentState, P>
-    ): typeof action;
+    context<P>(id: undefined, action: hyperappSubset.Action<ComponentState, P>): typeof action;
     context(): ComponentContext<ComponentState, MainState>;
 
     destroy(state: MainState): MainState;
