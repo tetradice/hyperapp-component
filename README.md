@@ -4,17 +4,16 @@
 
 It is composed a hyperapp middleware and function for creating component.
 
-
 # Features
 
 - Stateful component support
-- API as small and easy to learn as possible
 - "True one state" does not break - the state of each component is combined in the app state
 - Can also be used module-like (there is only one component and state in the entire app)
+- Built-in TypeScript support
 
 # Prerequisites for using
 
-- __App state is object__ (not number, string, boolean, etc.)
+- __App state must be object__ (not number, string, boolean, etc.)
 
 # Install
 
@@ -28,9 +27,10 @@ It is composed a hyperapp middleware and function for creating component.
 
 # Usage
 
-1. Add `componentHandler` to `middleware` argument of `app()`.
+1. Add `componentHandler` to `middleware` parameter of `app()`.
 
     ```jsx
+    import { h, app } from "hyperapp";
     import { componentHandler } from "hyperapp-component";
 
     app({
@@ -43,10 +43,9 @@ It is composed a hyperapp middleware and function for creating component.
     - If you multiple middleware, use `compose()` at [@hyperapp/middlewares (by sergey-shpak)](https://github.com/sergey-shpak/hyperapp-middlewares).
     
         ```jsx
-        import { h, app } from "hyperapp";
+        import { compose } from "@hyperapp/middlewares";
         import { componentHandler } from "hyperapp-component";
         import logger from "hyperapp-v2-basiclogger";
-        import { compose } from "@hyperapp/middlewares";
 
         app({
             ...
@@ -57,6 +56,7 @@ It is composed a hyperapp middleware and function for creating component.
 2. Define your component by `component()` function. (the example below uses ES6 and JSX)
 
     ```jsx
+    import { h } from "hyperapp";
     import { component } from "hyperapp-component";
 
     const UpdateComponentValue = (cState, value) => {
@@ -65,7 +65,9 @@ It is composed a hyperapp middleware and function for creating component.
 
     export var MyTextBox = component({
           view: (c, cState, props, children) => {
-            return <input type="text" value={cState.value} onchange={[c(UpdateComponentValue), (e) => e.target.value]} />
+            return <input type="text"
+                          value={cState.value}
+                          onchange={[c(UpdateComponentValue), (e) => e.target.value]} />
           }
         , init: () => ({ value: "" })
         , name: "MyTextBox"
@@ -75,14 +77,14 @@ It is composed a hyperapp middleware and function for creating component.
     Its function has 3 main parameters. (similar to `app()`)
 
     - `view` is required. This is a function that takes the following 4 arguments and returns a VNode.
-        - `c` is component context. By using it like `c(Action)` or  `[c(Action), payload]`, the result of the action is reflected in the component state  (not the main state of the app).
+        - `c` is component context. By using it like `c(Action)` or  `[c(Action), payload]`, the result of the action is reflected in the component state (not the main state of the app).
         - `cState` is component state. It is held for each component.
         - `props` and `children` are attributes and child elements that are passed when the component is called, just like a normal component.
 
             ```jsx
-            <MyTextBox type="labeled"><span>label text</span></MyTextBox>
+            <MyTextBox id={1} state={appState} type="labeled"><span>label text</span></MyTextBox>
 
-            // props -> {type: "labeled"} (object)
+            // props -> {id: 1, state: appState, type: "labeled"} (object)
             // children -> [<span>label text</span>] (array of VNode)
             ```
 
@@ -90,7 +92,7 @@ It is composed a hyperapp middleware and function for creating component.
 
             ```jsx
                 , view: (c, cState) => {
-                    ...
+                   ...
                 }
             ```
 
@@ -101,6 +103,9 @@ It is composed a hyperapp middleware and function for creating component.
 3. And use it.
 
     ```jsx
+    import { h, app } from "hyperapp";
+    import { MyTextBox } from "./components/MyTextBox";
+    
     app({
         view: (state) => (
             <div>
@@ -112,7 +117,7 @@ It is composed a hyperapp middleware and function for creating component.
     });
     ```
 
-    A component has two special attributes -- `state` and `id`.
+    A component receives two special attributes -- `state` and `id`.
 
     - `state` is required. Just pass the app state. (Since component state is included in app state, it needs to be passed to get component state)
     - `id` is a value that is a number or string that is used as a key to hold the component state. If there are two or more components of the same type, a unique key must be specified for each component. __This value must be unique in the entire app.__
@@ -133,46 +138,13 @@ It is composed a hyperapp middleware and function for creating component.
 
 ## Component state
 
-`hyperapp-component` manages the state of each component by integrating it into the app state. They are encapsulated and should normally not be accessed outside of component actions.
+`hyperapp-component` manages the state of each component by integrating it into the app state. They are encapsulated and should normally not be accessed directly outside of component actions.
 
-However, by using `mountProperty` option, you can assign component states to specific properties of app state and access them from the outside. (Described later)
-
-
-
-## Dispatch component action
-
-If you want to dispatch an action and update a component state, you should wrap the action with `c` function.
-
-```jsx
-import { component } from "hyperapp-component";
-
-const UpdateComponentValue = (cState, value) => {
-    return { ...cState, value: value };
-}
-
-export var MyTextBox = component({
-      view: (c, cState, props, children) => {
-          return <input type="text" value={cState.value} onchange={[c(UpdateComponentValue), (e) => e.target.value]} />
-      }
-    , init: () => ({ value: "" })
-    , name: "MyTextBox"
-});
-```
-
-`c(Action)` is __component action__. It updates only component state.
-
-When updating the component state, one of the following is specified for `on*` handler attribute.
-
-
-```js
-c(Action) // without custom payload
-[c(Action), payload] // with custom payload (or payload creator)
-```
-
+However, by using `mountToAppState` option, you can assign component states to specific properties of app state and access them from the outside. (Described later)
 
 ## Nested components
 
-If you want to nest components, pass `props.state` to the subcomponent. (__Not `cState`__)
+If you want to nest components, pass `props.state` to the subcomponents. (__Not `cState`__)
 
 ```jsx
 import { component } from "hyperapp-component";
@@ -198,7 +170,7 @@ export var MyTextBox = component({
 
 Unlike React, A does not automatically destroy component states that are no longer needed. Therefore, if you want to destroy them, you should use the following functions or effects.
 
-- functions (receives app state and return new app state, it is immutable)
+- action functions (receives app state and return new app state. they are immutable)
     - `MyComponent.destroy(state, id)`
     - `MyComponent.destroy(state, [id1, id2, ...])`
     - `MyComponent.destroy(state, /idPattern/)`
@@ -210,8 +182,9 @@ Unlike React, A does not automatically destroy component states that are no long
     - `MyComponent.destroyAllEffect()` (destroy all id states)
 
 ```jsx
+import { h, app } from "hyperapp";
 import { component } from "hyperapp-component";
-import { MyTextBox } from "./MyTextBox";
+import { MyTextBox } from "./components/MyTextBox";
 
 const BreakTextBox = (state, value) => {
     if(state.textBoxCount >= 1){
@@ -229,7 +202,7 @@ const BreakAllTextBox = (state, value) => {
 }
 
 app({
-    init: {textBoxCount: 5}
+    init: {textBoxCount: 5},
     view: (state) => {
         var textBoxes = [];
         for(var i = 0; i < state.textBoxCount; i++){
@@ -246,23 +219,60 @@ app({
                 <button onclick={BreakAllTextBox}>Break All TextBoxes</button>
             </div>
         )
-    );
+    },
+    node: document.getElementById("app"),
+    middleware: componentHandler
 });
 ```
 
-## Module-like
+## TypeScript support
 
-By using without setting the id, you can use it in module-like. ("module-like" here means that there is always only one in the application and multiple instances cannot be created)
+`hyperapp-component` has built-in support for TypeScript, so you can use it on TypeScript.
+
+- Note: __hyperapp V2 does not yet officially support TypeScript__, and you cannot use the released version of Hyperapp V2 in TypeScript. (As of September 16, 2019)
+
+    If you want to use hyperapp V2 on TypeScript at this time, you need to use Yarn and install hyperapp V2 from the branch I have published.
+
+    ```bash
+    # for Yarn
+    % yarn add -D https://github.com/tetradice/hyperapp#typescript-declarations-improvement
+    ```
+
+    (I'm sending a Pull Request to hyperapp V2, so if it's adopted, you'll be able to use TypeScript in the release version of Hyperapp V2)
+
+When using with TypeScript, write as follows.
+
+```tsx
+import { h } from "hyperapp";
+import { component, ComponentActionResult } from "hyperapp-component";
+import { AppState } from "../typings/state";  // type AppState = { ... };
+
+type CState = { value: string }
+
+const UpdateComponentValue = (cState, value): ComponentActionResult<CState, AppState> => {
+    return { ...cState, value: value };
+}
+
+export var MyTextBox = component<{}, CState, AppState>({
+    view: (c, cState, props, children) => {
+    return <input type="text"
+                  value={cState.value}
+                  onchange={[c(UpdateComponentValue), (e) => e.target.value]} />
+    }
+    , init: () => ({ value: "" })
+    , name: "MyTextBox"
+});
+```
+
+## Advanced: Module-like
+
+By using without setting the `id`, you can use it in module-like. ("module-like" here means that there is always only one in the application and multiple instances cannot be created)
 
 ```jsx
 <Module1 state={state} />
 ```
 
-In this case, since no key is set, one component state is shared by all the places where Module1 is called.
-
-
-## TypeScript support
-
+In this case, since `id` is not set, one component state is shared by all the places where `Module1` is called.
 
 
 ## Advanced: Get or update component state from outside by API
@@ -270,9 +280,9 @@ In this case, since no key is set, one component state is shared by all the plac
 You can also get or update component state from outside the component view. This is useful if you want to modularize your app.
 This is useful if you want to modularize your app and split it into multiple parts for each function.
 
-To get component state, use `MyComponent.slice` to extract the component status from the app status.
+To get component state, use `MyComponent.slice()` to extract the component status from the app status.
 
-To update component state, use `MyComponent.context` to dispatch component action.
+To update component state, use `MyComponent.context()` to dispatch component action.
 
 ## Option: Mount to app state
 
