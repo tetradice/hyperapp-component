@@ -19,8 +19,7 @@ interface Component<Props, ComponentState, MainState> {
     (props: Props & SpecialProps<MainState>, children: hyperappSubset.Children[]): hyperappSubset.VNode | null;
 
     slice(state: MainState, id?: IdValue): ComponentState | undefined;
-
-    context<P>(id: IdValue, action: hyperappSubset.Action<ComponentState, P>): hyperappSubset.Action<MainState, P>;
+    context<P>(id: IdValue, action: ComponentAction<ComponentState, P, MainState>): hyperappSubset.Action<MainState, P>;
     context(id?: IdValue): ComponentContext<ComponentState, MainState>;
 
     destroy(state: MainState, ids: IdValue[]): MainState;
@@ -34,12 +33,16 @@ interface Component<Props, ComponentState, MainState> {
     destroyAllEffect(): hyperappSubset.Effect<MainState>;
 }
 
+interface ComponentWithInit<Props, ComponentState, MainState> extends Component<Props, ComponentState, MainState> {
+    slice(state: MainState, id?: IdValue): ComponentState;
+}
+
 interface SingletonComponent<Props, ComponentState, MainState> {
     (props: Props & Omit<SpecialProps<MainState>, "id">, children: hyperappSubset.Children[]): hyperappSubset.VNode | null;
 
     slice(state: MainState): ComponentState | undefined;
 
-    context<P>(id: undefined, action: hyperappSubset.Action<ComponentState, P>): typeof action;
+    context<P>(id: undefined, action: ComponentAction<ComponentState, P>): typeof action;
     context(): ComponentContext<ComponentState, MainState>;
 
     destroy(state: MainState): MainState;
@@ -47,6 +50,10 @@ interface SingletonComponent<Props, ComponentState, MainState> {
 
     destroyEffect(): hyperappSubset.Effect<MainState>;
     destroyAllEffect(): hyperappSubset.Effect<MainState>;
+}
+
+interface SingletonComponentWithInit<Props, ComponentState, MainState> extends SingletonComponent<Props, ComponentState, MainState> {
+    slice(state: MainState, id?: IdValue): ComponentState;
 }
 
 interface ComponentParam<Props, ComponentState, MainState> {
@@ -64,8 +71,16 @@ interface ComponentParam<Props, ComponentState, MainState> {
 }
 
 export function component<Props, ComponentState, MainState = unknown>(
+    params: ComponentParam<Props, ComponentState, MainState> & { init: () => ComponentState, singleton: true }
+): SingletonComponentWithInit<Props, ComponentState, MainState>;
+
+export function component<Props, ComponentState, MainState = unknown>(
     params: ComponentParam<Props, ComponentState, MainState> & { singleton: true }
 ): SingletonComponent<Props, ComponentState, MainState>;
+
+export function component<Props, ComponentState, MainState = unknown>(
+    params: ComponentParam<Props, ComponentState, MainState> & { init: () => ComponentState }
+): ComponentWithInit<Props, ComponentState, MainState>;
 
 export function component<Props, ComponentState, MainState = unknown>(
     params: ComponentParam<Props, ComponentState, MainState>
