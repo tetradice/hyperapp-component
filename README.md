@@ -1,6 +1,6 @@
 # hyperapp-component
 
-`hyperapp-component` is plugin to enhance stateful component for [Hyperapp V2](https://github.com/jorgebucaran/hyperapp).
+`hyperapp-component` is plugin to enhance stateful component and module for [Hyperapp V2](https://github.com/jorgebucaran/hyperapp).
 
 It is composed a hyperapp middleware and function for creating component.
 
