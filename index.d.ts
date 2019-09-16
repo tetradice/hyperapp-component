@@ -7,8 +7,15 @@ interface SpecialProps<MainState> {
     state: MainState;
 }
 
+interface ComponentAction<ComponentState, Payload = void, MainState = unknown> {
+    (state: ComponentState, data: Payload): ComponentActionResult<ComponentState, MainState>;
+}
+
 interface ComponentContext<ComponentState, MainState> {
-    <P>(action: hyperappSubset.Action<ComponentState, P>): hyperappSubset.Action<MainState, P>;
+    <P>(action: ComponentAction<ComponentState, P, MainState>): hyperappSubset.Action<
+        MainState,
+        P
+    >;
 }
 
 interface Component<Props, ComponentState, MainState> {
@@ -71,18 +78,18 @@ interface ComponentParam<Props, ComponentState, MainState> {
     singleton?: boolean;
 }
 
-export function component<Props, ComponentState, MainState>(
+export function component<Props, ComponentState, MainState = unknown>(
     params: ComponentParam<Props, ComponentState, MainState> & { singleton: true }
 ): SingletonComponent<Props, ComponentState, MainState>;
-export function component<Props, ComponentState, MainState>(
+
+export function component<Props, ComponentState, MainState = unknown>(
     params: ComponentParam<Props, ComponentState, MainState>
 ): Component<Props, ComponentState, MainState>;
 
-export type ComponentActionResult<ComponentState, MainState = any> =
+export type ComponentActionResult<ComponentState, MainState = unknown> =
     | ComponentState
     | [ComponentState, ...hyperappSubset.Effect<MainState>[]]
     | hyperappSubset.Dispatchable<MainState>;
-
 
 declare namespace hyperappSubset {
     export interface VNode {
