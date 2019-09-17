@@ -241,16 +241,16 @@ app({
 
 `hyperapp-component` has built-in support for TypeScript, so you can use it on TypeScript.
 
-- Note: __hyperapp V2 does not yet officially support TypeScript__, and you cannot use the released version of Hyperapp V2 in TypeScript. (As of September 16, 2019)
+- Note: __Hyperapp V2 does not yet officially support TypeScript__, and you cannot use the released version of Hyperapp V2 in TypeScript. (As of September 16, 2019)
 
-    If you want to use hyperapp V2 on TypeScript at this time, you need to use Yarn and install hyperapp V2 from the branch I have published.
+    If you want to use Hyperapp V2 on TypeScript at this time, you need to use Yarn and install Hyperapp V2 from the branch I have published.
 
     ```bash
     # for Yarn
     % yarn add -D https://github.com/tetradice/hyperapp#typescript-declarations-improvement
     ```
 
-    (I'm sending a Pull Request to hyperapp V2, so if it's adopted, you'll be able to use TypeScript in the release version of Hyperapp V2)
+    (I'm sending a Pull Request to Hyperapp V2, so if it's adopted, you'll be able to use TypeScript in the release version of Hyperapp V2)
 
 When using with TypeScript, write as follows.
 
