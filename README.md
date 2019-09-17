@@ -104,16 +104,20 @@ It is composed a hyperapp middleware and function for creating component.
 
     ```jsx
     import { h, app } from "hyperapp";
+    import { componentHandler } from "hyperapp-component";
     import { MyTextBox } from "./components/MyTextBox";
     
     app({
+        init: {},
         view: (state) => (
             <div>
                 <MyTextBox state={state} id={1} />
                 <MyTextBox state={state} id={2} />
                 <MyTextBox state={state} id={3} />
             </div>
-        );
+        ),
+        node: document.getElementById("app"),
+        middleware: componentHandler
     });
     ```
 
@@ -249,20 +253,36 @@ import { AppState } from "../typings/state";  // type AppState = { ... };
 
 type CState = { value: string }
 
-const UpdateComponentValue = (cState, value): ComponentActionResult<CState, AppState> => {
+const UpdateComponentValue: ComponentAction<CState, string, AppState> = (cState, value) => {
     return { ...cState, value: value };
 }
 
 export var MyTextBox = component<{}, CState, AppState>({
     view: (c, cState, props, children) => {
-    return <input type="text"
-                  value={cState.value}
-                  onchange={[c(UpdateComponentValue), (e) => e.target.value]} />
+        return <input type="text"
+                      value={cState.value}
+                      onchange={[c(UpdateComponentValue), (e) => (e.target as any).value]} />
     }
     , init: () => ({ value: "" })
     , name: "MyTextBox"
 });
 ```
+
+If you want to define a component action, use `ComponentAction<ComponentState, Payload, AppState>`.
+
+- `Payload` represents the type of payload that the Action can accept. If omitted, it is `void` (does not accept Payload).
+- `AppState` represents the type of app state, not its component state. This may be used by Effect in the case of Action with Effect.
+  If the component can be used for any app, it can be omitted and the default value is `unknown` if omitted.
+
+If you define a type in TypeScript, you need to specify the type in the `component()` function.
+
+```ts
+component<Props, ComponentState, AppState>({
+    ...
+})
+```
+
+- `AppState` represents the state of app as above. This also applies to the `props.state` type.
 
 ## Advanced: Module-like
 
@@ -277,12 +297,38 @@ In this case, since `id` is not set, one component state is shared by all the pl
 
 ## Advanced: Get or update component state from outside by API
 
-You can also get or update component state from outside the component view. This is useful if you want to modularize your app.
+You can also get or update component state from outside the component view.
 This is useful if you want to modularize your app and split it into multiple parts for each function.
 
-To get component state, use `MyComponent.slice()` to extract the component status from the app status.
+To get component state, use `MyComponent.slice(id)` to extract the component state from the app state.
 
 To update component state, use `MyComponent.context()` to dispatch component action.
+
+```jsx
+import { h, app } from "hyperapp";
+import { componentHandler } from "hyperapp-component";
+import { MyTextBox } from "./components/MyTextBox";
+
+app({
+    init: {},
+    view: (state) => {
+        let textBox2State = MyTextBox.slice(state, 2);  // Get the component state of MyTextBox (ID=2) from app state
+
+        return (
+            <div>
+                <MyTextBox state={state} id={1} />
+                <MyTextBox state={state} id={2} />
+                <MyTextBox state={state} id={3} />
+
+                <button onclick={MyTextBox.context(2, Action1)}>Update 2nd text box</button>   // Update the state of MyTextBox with (ID=2) using Action1
+                <button onclick={MyTextBox.context(2)(Action1)}>Update 2nd text box</button>   // Same as above
+            </div>
+        );
+    },
+    node: document.getElementById("app"),
+    middleware: componentHandler
+});
+```
 
 ## Option: Mount to app state
 
