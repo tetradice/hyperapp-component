@@ -4,7 +4,7 @@
 
 It is composed a hyperapp middleware and function for creating component.
 
-You can try it online demos:
+You can try it online demos (powered by CodeSandbox):
 
 - [Simple example](https://codesandbox.io/s/hyperapp-component-demo-simple-76fzm?fontsize=14&module=%2Findex.jsx)
 - [Calculator](https://codesandbox.io/s/hyperapp-component-demo-calclator-soznz?fontsize=14&module=%2Findex.jsx)
