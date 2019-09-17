@@ -4,6 +4,12 @@
 
 It is composed a hyperapp middleware and function for creating component.
 
+You can try it online demos:
+
+- [Simple example](https://codesandbox.io/s/hyperapp-component-demo-simple-76fzm?fontsize=14&module=%2Findex.jsx)
+- [Calculator](https://codesandbox.io/s/hyperapp-component-demo-calclator-soznz?fontsize=14&module=%2Findex.jsx)
+- [Calculator (on TypeScript)](https://codesandbox.io/s/hyperapp-component-demo-calclator-typescript-tozfi?fontsize=14&module=%2Findex.tsx)
+
 # Features
 
 - Stateful component support
@@ -26,6 +32,8 @@ It is composed a hyperapp middleware and function for creating component.
 ```
 
 # Usage
+
+(Note: In the following code examples, ES6 and JSX are used)
 
 1. Add `componentHandler` to `middleware` parameter of `app()`.
 
@@ -53,7 +61,7 @@ It is composed a hyperapp middleware and function for creating component.
         });
         ```
 
-2. Define your component by `component()` function. (the example below uses ES6 and JSX)
+2. Define your component by `component()` function.
 
     ```jsx
     import { h } from "hyperapp";
@@ -63,7 +71,7 @@ It is composed a hyperapp middleware and function for creating component.
         return { ...cState, value: value };
     }
 
-    export var MyTextBox = component({
+    export const MyTextBox = component({
           view: (c, cState, props, children) => {
             return <input type="text"
                           value={cState.value}
@@ -153,7 +161,7 @@ If you want to nest components, pass `props.state` to the subcomponents. (__Not 
 ```jsx
 import { component } from "hyperapp-component";
 
-var MySubTextBox = component({
+const MySubTextBox = component({
       view: (c, cState) => {
           return <input type="text" value={cState.value} />
       }
@@ -161,7 +169,7 @@ var MySubTextBox = component({
     , name: "MySubTextBox"
 });
 
-export var MyTextBox = component({
+export const MyTextBox = component({
       view: (c, cState, props) => {
           return <MySubTextBox state={props.state}  />
       }
@@ -192,8 +200,8 @@ import { MyTextBox } from "./components/MyTextBox";
 
 const BreakTextBox = (state, value) => {
     if(state.textBoxCount >= 1){
-        var destroyedId = state.textBoxCount - 1;
-        var newState = {...state, textBoxCount: state.textBoxCount - 1};
+        let destroyedId = state.textBoxCount - 1;
+        let newState = {...state, textBoxCount: state.textBoxCount - 1};
         newState = MyTextBox.destroy(newState, destroyedId);
         return newState;
     } else {
@@ -208,8 +216,8 @@ const BreakAllTextBox = (state, value) => {
 app({
     init: {textBoxCount: 5},
     view: (state) => {
-        var textBoxes = [];
-        for(var i = 0; i < state.textBoxCount; i++){
+        let textBoxes = [];
+        for(let i = 0; i < state.textBoxCount; i++){
             textBoxes.push(
                 <div>
                     <MyTextBox state={state} id={i} />
@@ -257,7 +265,7 @@ const UpdateComponentValue: ComponentAction<CState, string, AppState> = (cState,
     return { ...cState, value: value };
 }
 
-export var MyTextBox = component<{}, CState, AppState>({
+export const MyTextBox = component<{}, CState, AppState>({
     view: (c, cState, props, children) => {
         return <input type="text"
                       value={cState.value}
@@ -341,7 +349,7 @@ const UpdateComponentValue = (cState, value) => {
     return { ...cState, value: value };
 }
 
-var MyTextBox = component({
+const MyTextBox = component({
         view: (c, cState, props, children) => {
         return <input type="text" value={cState.value} onchange={[c(UpdateComponentValue), (e) => e.target.value]} />
         }
@@ -384,7 +392,7 @@ By specifying the `singleton` option, you can guarantee that there is only one c
 (You can call a component in multiple places, but you can't give a different state for each place you call)
 
 ```js
-var MyModule1 = component({
+const MyModule1 = component({
       view: (c, cState, props, children) => {
         return <div> ... </div>
       }
